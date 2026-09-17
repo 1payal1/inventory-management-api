@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List,Optional
 
 from app.database import SessionLocal
 from app import models, schemas
@@ -29,10 +29,23 @@ def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
     return db_item
 
 
-@router.get("/", response_model=List[schemas.ItemResponse])
-def get_items(db: Session = Depends(get_db)):
-    return db.query(models.Item).all()
+# @router.get("/", response_model=List[schemas.ItemResponse])
+# def get_items(db: Session = Depends(get_db)):
+#     return db.query(models.Item).all()
 
+@router.get("/", response_model=List[schemas.ItemResponse])
+def get_items(
+    skip: int = 0,
+    limit: int = 10,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.ItemXYZ)
+
+    if search:
+        query = query.filter(models.Item.name.ilike(f"%{search}%"))
+
+    return query.offset(skip).limit(limit).all()
 
 @router.get("/{item_id}", response_model=schemas.ItemResponse)
 def get_item(item_id: int, db: Session = Depends(get_db)):
