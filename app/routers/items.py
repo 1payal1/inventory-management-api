@@ -4,6 +4,7 @@ from typing import List,Optional
 
 from app.database import SessionLocal
 from app import models, schemas
+from app.auth import get_current_user
 
 router = APIRouter(
     prefix="/items",
@@ -21,7 +22,7 @@ def get_db():
 
 
 @router.post("/", response_model=schemas.ItemResponse)
-def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
+def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db),current_user: models.User = Depends(get_current_user)):
     db_item = models.Item(**item.dict())
     db.add(db_item)
     db.commit()
@@ -40,7 +41,7 @@ def get_items(
     search: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    query = db.query(models.ItemXYZ)
+    query = db.query(models.Item)
 
     if search:
         query = query.filter(models.Item.name.ilike(f"%{search}%"))
@@ -56,7 +57,7 @@ def get_item(item_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{item_id}", response_model=schemas.ItemResponse)
-def update_item(item_id: int, updated: schemas.ItemUpdate, db: Session = Depends(get_db)):
+def update_item(item_id: int, updated: schemas.ItemUpdate, db: Session = Depends(get_db),current_user: models.User = Depends(get_current_user)):
     item = db.query(models.Item).filter(models.Item.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -68,7 +69,7 @@ def update_item(item_id: int, updated: schemas.ItemUpdate, db: Session = Depends
 
 
 @router.delete("/{item_id}")
-def delete_item(item_id: int, db: Session = Depends(get_db)):
+def delete_item(item_id: int, db: Session = Depends(get_db),current_user: models.User = Depends(get_current_user)):
     item = db.query(models.Item).filter(models.Item.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")

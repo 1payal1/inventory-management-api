@@ -18,12 +18,13 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from app.database import engine, Base
-from app.routers import items
+from app.routers import items,auth
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Inventory Management API")
 
+app.include_router(auth.router)
 app.include_router(items.router)
 
 

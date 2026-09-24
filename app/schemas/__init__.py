@@ -1,14 +1,3 @@
-# from pydantic import BaseModel
-# from typing import Optional
-
-
-# class ItemBase(BaseModel):
-#     name: str
-#     description: Optional[str] = None
-#     quantity: int = 0
-#     price: float
-
-
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 
@@ -26,6 +15,7 @@ class ItemBase(BaseModel):
             raise ValueError("name cannot be blank or just whitespace")
         return v.strip()
 
+
 class ItemCreate(ItemBase):
     pass
 
@@ -39,3 +29,28 @@ class ItemResponse(ItemBase):
 
     class Config:
         from_attributes = True
+
+
+class PaginatedItemResponse(BaseModel):
+    total: int
+    skip: int
+    limit: int
+    items: List[ItemResponse]
+
+
+class UserCreate(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    password: str = Field(..., min_length=6)
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+
+    class Config:
+        from_attributes = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
